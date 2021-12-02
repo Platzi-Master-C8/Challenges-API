@@ -17,7 +17,7 @@ class CreateAchievementsTable extends Migration
             $table->id();
             $table->string('name', 50)->unique();
             $table->text('description')->unique();
-            $table->binary('badge');
+            $table->text('badge');
             $table->timestamps();
         });
     }
