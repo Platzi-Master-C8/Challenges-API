@@ -15,8 +15,9 @@ class CreateChallengesTable extends Migration
     {
         Schema::create('challenges', function (Blueprint $table) {
             $table->id();
-            $table->text('description')->unique();
+            $table->text('description');
             $table->tinyInteger('time_out');
+            $table->enum('difficulty', ['low', 'medium', 'high']);
             //TODO: Answers
             $table->timestamps();
         });
