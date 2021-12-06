@@ -18,7 +18,6 @@ class CreateChallengersTable extends Migration
             $table->bigInteger('points')->default(0);
 
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
-            $table->foreignId('rank_id')->constrained('ranks')->restrictOnDelete();
         });
     }
 

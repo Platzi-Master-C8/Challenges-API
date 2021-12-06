@@ -1,5 +1,6 @@
 <?php
 
+use App\Constants\ChallengeStatuses;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -15,7 +16,7 @@ class CreateChallengeActivityLogsTable extends Migration
     {
         Schema::create('challenge_activity_logs', function (Blueprint $table) {
             $table->id();
-            $table->enum('status', ['in_progress', 'incomplete', 'successful'])->default('in_progress');
+            $table->enum('status', ChallengeStatuses::toArray())->default(ChallengeStatuses::IN_PROGRESS);
             $table->timestamps();
 
             $table->foreignId('challenge_id')->constrained('challenges')->cascadeOnDelete();
