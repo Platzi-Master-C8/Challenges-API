@@ -23,10 +23,11 @@ class ChallengerResource extends JsonResource
                 'streak' => $this->challengeStreakAmount()
             ],
             'ranks' => [
-                'current' => $this->currentRank(),
-                'next' => $this->nextRank(),
+                'current' => $this->getCurrentRank(),
+                'next' => $this->getNextRank(),
             ],
-            'achievements' => $this->getAchievements(),
+            'related_achievements' => $this->getRelatedAchievements(),
+            'non_related_achievements' => $this->getRelatedAchievements(),
             'activity' => $this->getActivity($dateFrom, $dateTo),
         ];
     }
@@ -43,36 +44,46 @@ class ChallengerResource extends JsonResource
             })->count();
     }
 
-    private function currentRank(): array
+    private function getCurrentRank(): array
     {
-        $currentRank = $this->ranks->firstWhere('pivot.is_current', true);
+        $currentRank = $this->currentRank;
 
         return [
             'name' => $currentRank->name,
             'required_points' => $currentRank->required_points
-        ];
+        ]; //TODO: Refactor
     }
 
-    private function nextRank(): array
+    private function getNextRank(): array
     {
-        $nextRank = $this->ranks->firstWhere('pivot.is_next', true);
+        $nextRank = $this->nextRank;
 
         return [
             'name' => $nextRank->name,
             'required_points' => $nextRank->required_points
-        ];
+        ]; //TODO: Refactor
     }
 
-    private function getAchievements(): array
+    private function getRelatedAchievements(): array
     {
-        return $this->achievements->map(function ($item) {
+        return $this->relatedAchievements->map(function ($item) {
             return [
                 'name' => $item['name'],
                 'description' => $item['description'],
                 'badge' => $item['badge'],
-                'is_earned' => (bool)$item->getOriginal('pivot_is_earned'),
             ];
-        })->toArray();
+        })->toArray(); //TODO: Refactor
+    }
+
+    private function getNonRelatedAchievements(): array
+    {
+        return $this->nonRelatedAchievements->map(function ($item) {
+            return [
+                'name' => $item['name'],
+                'description' => $item['description'],
+                'badge' => $item['badge'],
+            ];
+        })->toArray(); //TODO: Refactor
     }
 
     private function getActivity(Carbon $dateFrom, Carbon $dateTo): array

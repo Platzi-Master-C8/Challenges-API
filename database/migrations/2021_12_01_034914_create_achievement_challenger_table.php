@@ -15,7 +15,6 @@ class CreateAchievementChallengerTable extends Migration
     {
         Schema::create('achievement_challenger', function (Blueprint $table) {
             $table->id();
-            $table->boolean('is_earned')->default(false);
             $table->timestamp('created_at');
 
             $table->foreignId('achievement_id')->constrained('achievements')->cascadeOnDelete();

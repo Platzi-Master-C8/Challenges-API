@@ -20,8 +20,8 @@ class ChallengerController extends Controller
                 'user' => function ($query) {
                     $query->select('id', 'name');
                 },
-                'ranks' => function ($query) {
-                    $query->select('name', 'required_points')->withPivot('is_current', 'is_next');
+                'rank' => function ($query) {
+                    $query->select('name', 'required_points');
                 },
                 'achievements' => function ($query) {
                     $query->select('name', 'description', 'badge')->withPivot('is_earned');
