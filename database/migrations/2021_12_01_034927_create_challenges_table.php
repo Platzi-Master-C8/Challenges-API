@@ -1,5 +1,6 @@
 <?php
 
+use App\Constants\ChallengeDifficulties;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -17,7 +18,7 @@ class CreateChallengesTable extends Migration
             $table->id();
             $table->text('description');
             $table->tinyInteger('time_out');
-            $table->enum('difficulty', ['low', 'medium', 'high']);
+            $table->enum('difficulty', ChallengeDifficulties::toArray());
             //TODO: Answers
             $table->timestamps();
         });

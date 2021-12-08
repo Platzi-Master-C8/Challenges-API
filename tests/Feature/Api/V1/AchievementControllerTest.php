@@ -18,14 +18,15 @@ class AchievementControllerTest extends TestCase
      */
     public function test_get_achievements()
     {
-        $response = $this->get('/api/V1/achievements');
+        $response = $this->get(route('achievements.index'));
         $response->assertStatus(200);
     }
 
     public function test_get_achievement()
     {
         $achievement = Achievement::factory()->create();
-        $response = $this->get('/api/V1/achievements/' . $achievement->id);
+
+        $response = $this->get(route('achievements.show', $achievement->id));
         $response->assertJsonStructure([
             'data' => [
                 'id',
@@ -38,4 +39,6 @@ class AchievementControllerTest extends TestCase
         ]);
         $response->assertStatus(200);
     }
+
+
 }

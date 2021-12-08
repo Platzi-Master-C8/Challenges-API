@@ -2,9 +2,10 @@
 
 namespace Database\Factories;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-class RankFactory extends Factory
+class ChallengerFactory extends Factory
 {
     /**
      * Define the model's default state.
@@ -14,8 +15,8 @@ class RankFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => $this->faker->text(50),
-            'required_points' => $this->faker->numberBetween(0, 255),
+            'points' => $this->faker->numberBetween(0, 255),
+            'user_id' => User::factory(),
         ];
     }
 }
