@@ -19,16 +19,24 @@ class Challenger extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function ranks(): BelongsToMany
+    public function currentRank(): BelongsTo
     {
-        return $this->belongsToMany(Rank::class)
-            ->withPivot('is_current', 'is_next');
+        return $this->belongsTo(Rank::class); //TODO: Query
     }
 
-    public function achievements(): BelongsToMany
+    public function nextRank(): BelongsTo
     {
-        return $this->belongsToMany(Achievement::class)
-            ->withPivot('is_earned', 'created_at');
+        return $this->belongsTo(Rank::class); //TODO: Query
+    }
+
+    public function relatedAchievements(): BelongsToMany
+    {
+        return $this->belongsToMany(Achievement::class)->withPivot('created_at'); //TODO: Query
+    }
+
+    public function nonRelatedAchievements(): BelongsToMany
+    {
+        return $this->belongsToMany(Achievement::class)->withPivot('created_at'); //TODO: Query
     }
 
     public function challenges(): BelongsToMany
