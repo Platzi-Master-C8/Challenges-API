@@ -14,4 +14,6 @@ class Rank extends Model
         'require_points',
         'password',
     ];
+
+
 }

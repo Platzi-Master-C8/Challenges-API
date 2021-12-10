@@ -19,15 +19,11 @@ class Challenger extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function currentRank(): BelongsTo
+    public function rank(): BelongsTo
     {
         return $this->belongsTo(Rank::class); //TODO: Query
     }
 
-    public function nextRank(): BelongsTo
-    {
-        return $this->belongsTo(Rank::class); //TODO: Query
-    }
 
     public function relatedAchievements(): BelongsToMany
     {
@@ -44,5 +40,11 @@ class Challenger extends Model
         return $this->belongsToMany(Challenge::class, 'challenge_activity_logs')
             ->withPivot('status')
             ->withTimestamps();
+    }
+
+    public function achievements(): BelongsToMany
+    {
+        return $this->belongsToMany(Achievement::class, 'achievement_challenger')
+            ->withPivot('status'); //
     }
 }
