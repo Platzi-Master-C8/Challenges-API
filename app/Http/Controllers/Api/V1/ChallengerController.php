@@ -24,7 +24,7 @@ class ChallengerController extends Controller
                     $query->select('name', 'required_points');
                 },
                 'achievements' => function ($query) {
-                    $query->select('name', 'description', 'badge')->withPivot('is_earned');
+                    $query->select('name', 'description', 'badge');
                 },
                 'challenges' => function ($query) {
                     $query->select('difficulty')->withPivot('status', 'updated_at');
