@@ -15,7 +15,6 @@ class CreateChallengeActivityLogsTable extends Migration
     public function up()
     {
         Schema::create('challenge_activity_logs', function (Blueprint $table) {
-            $table->id();
             $table->enum('status', ChallengeStatuses::toArray())->default(ChallengeStatuses::IN_PROGRESS);
             $table->timestamps();
 
