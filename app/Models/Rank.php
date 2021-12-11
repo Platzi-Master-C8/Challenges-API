@@ -12,8 +12,5 @@ class Rank extends Model
     protected $fillable = [
         'name',
         'require_points',
-        'password',
     ];
-
-
 }

@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
             RankSeeder::class,
             AchievementSeeder::class,
             ChallengerSeeder::class,
+            ChallengeSeeder::class,
         ]);
     }
 }
