@@ -18,25 +18,29 @@ class ChallengerControllerTest extends TestCase
     use RefreshDatabase;
     use WithFaker;
 
-    public function test_it_can_get_a_challenger_data(): void
+    public function test_get_challenger(): void
     {
         Carbon::setTestNow('2021-12-05');
 
         $user = User::factory()->create();
-        $currentRank = Rank::factory()->create();
-        $nextRank = Rank::factory()->create();
-        $achievements = Achievement::factory()->count(4)->create();
-        $challenges = Challenge::factory()->count(10)->create();
-        $challenger = Challenger::factory()
-            ->for($user)
-            ->hasAttached($currentRank, ['is_current' => true])
-            ->hasAttached($nextRank, ['is_next' => true])
-            ->create();
+        $rank = Rank::factory()->create(['required_points' => 0]);
 
-        $achievements->each(function ($achievement) use ($challenger) {
-            $challenger->achievements()->attach($achievement, [
-                'is_earned' => $this->faker->randomElement([true, false])
-            ]);
+        Rank::factory()->create(['required_points' => 101]);
+        Rank::factory()->create(['required_points' => 201]);
+
+        $relatedAchievements = Achievement::factory()->count(2)->create();
+
+        Achievement::factory()->count(8)->create();
+
+        $challenges = Challenge::factory()->count(10)->create();
+        $challenger = Challenger::create([
+            'points' => 100,
+            'user_id' => $user->id,
+            'rank_id' => $rank->id
+        ]);
+
+        $relatedAchievements->each(function ($achievement) use ($challenger) {
+            $challenger->achievements()->attach($achievement);
         });
 
         $challenges->each(function ($challenge) use ($challenger) {
@@ -60,7 +64,7 @@ class ChallengerControllerTest extends TestCase
             ->assertJsonStructure([
                 'data' => [
                     'id',
-                    'name',
+                    'nick_name',
                     'points',
                     'challenges' => [
                         'completed',
@@ -77,11 +81,19 @@ class ChallengerControllerTest extends TestCase
                         ],
                     ],
                     'achievements' => [
-                        [
-                            'name',
-                            'description',
-                            'badge',
-                            'is_earned',
+                        'related' => [
+                            [
+                                'name',
+                                'description',
+                                'badge',
+                            ],
+                        ],
+                        'non_related' => [
+                            [
+                                'name',
+                                'description',
+                                'badge',
+                            ],
                         ],
                     ],
                     'activity' => [],

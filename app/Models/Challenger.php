@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Constants\ChallengeStatuses;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,6 +10,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 class Challenger extends Model
 {
     use HasFactory;
+
+    protected $fillable = [
+        'points',
+        'user_id',
+        'rank_id',
+    ];
 
     public $timestamps = false;
 
@@ -21,18 +26,7 @@ class Challenger extends Model
 
     public function rank(): BelongsTo
     {
-        return $this->belongsTo(Rank::class); //TODO: Query
-    }
-
-
-    public function relatedAchievements(): BelongsToMany
-    {
-        return $this->belongsToMany(Achievement::class)->withPivot('created_at'); //TODO: Query
-    }
-
-    public function nonRelatedAchievements(): BelongsToMany
-    {
-        return $this->belongsToMany(Achievement::class)->withPivot('created_at'); //TODO: Query
+        return $this->belongsTo(Rank::class);
     }
 
     public function challenges(): BelongsToMany
@@ -44,7 +38,6 @@ class Challenger extends Model
 
     public function achievements(): BelongsToMany
     {
-        return $this->belongsToMany(Achievement::class, 'achievement_challenger')
-            ->withPivot('status'); //
+        return $this->belongsToMany(Achievement::class)->withPivot('created_at');
     }
 }

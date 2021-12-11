@@ -3,20 +3,26 @@
 namespace App\Http\Resources\V1;
 
 use App\Constants\ChallengeStatuses;
+use App\Models\Achievement;
+use App\Models\Rank;
 use Carbon\Carbon;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class ChallengerResource extends JsonResource
 {
+    private const NON_RELATED_ACHIEVEMENTS_AMOUNT = 2;
+
     public function toArray($request): array
     {
         $dateFrom = Carbon::create($request->get('dateFrom') ?? now()->subWeek());
+
         $dateTo = Carbon::create($request->get('dateTo') ?? now());
 
         return [
             'id' => $this->id,
-            'name' => $this->user->name,
+            'nick_name' => $this->user->nick_name,
             'points' => $this->points,
             'challenges' => [
                 'completed' => $this->completedChallengesAmount(),
@@ -26,8 +32,10 @@ class ChallengerResource extends JsonResource
                 'current' => $this->getCurrentRank(),
                 'next' => $this->getNextRank(),
             ],
-            'related_achievements' => $this->getRelatedAchievements(),
-            'non_related_achievements' => $this->getRelatedAchievements(),
+            'achievements' => [
+                'related' => $this->getRelatedAchievements(),
+                'non_related' => $this->getNonRelatedAchievements(),
+            ],
             'activity' => $this->getActivity($dateFrom, $dateTo),
         ];
     }
@@ -40,56 +48,65 @@ class ChallengerResource extends JsonResource
     private function challengeStreakAmount(): int
     {
         return $this->getCompletedChallenges()->filter(function ($value) {
-                return date("Y-m-d", strtotime(now())) === date("Y-m-d", strtotime($value->pivot->updated_at));
-            })->count();
+            return date("Y-m-d", strtotime(now())) === date("Y-m-d", strtotime($value->pivot->updated_at));
+        })->count();
     }
 
     private function getCurrentRank(): array
     {
-        $currentRank = $this->currentRank;
-
         return [
-            'name' => $currentRank->name,
-            'required_points' => $currentRank->required_points
-        ]; //TODO: Refactor
+            'name' => $this->rank->name,
+            'required_points' => $this->rank->required_points
+        ];
     }
 
-    private function getNextRank(): array
+    private function getNextRank(): array //TODO: Cache layer
     {
-        $nextRank = $this->nextRank;
+        $nextRank = DB::table('ranks')
+            ->where('required_points', '>', $this->points)
+            ->orderBy('required_points')
+            ->first(['name', 'required_points']);
 
         return [
-            'name' => $nextRank->name,
-            'required_points' => $nextRank->required_points
-        ]; //TODO: Refactor
+            'name' => optional($nextRank)->name,
+            'required_points' => optional($nextRank)->required_points
+        ];
     }
 
     private function getRelatedAchievements(): array
     {
-        return $this->relatedAchievements->map(function ($item) {
+        $relatedAchievements = $this->achievements;
+
+        return $relatedAchievements->map(function ($item) {
             return [
                 'name' => $item['name'],
                 'description' => $item['description'],
                 'badge' => $item['badge'],
             ];
-        })->toArray(); //TODO: Refactor
+        })->toArray();
     }
 
-    private function getNonRelatedAchievements(): array
+    private function getNonRelatedAchievements(): array //TODO: Cache layer
     {
-        return $this->nonRelatedAchievements->map(function ($item) {
+        $nonRelatedAchievements = DB::table('achievements')
+            ->whereNotIn('id', $this->achievements->pluck('id'))
+            ->orderByDesc('created_at')
+            ->limit(self::NON_RELATED_ACHIEVEMENTS_AMOUNT)
+            ->get(['name', 'description', 'badge']);
+
+        return $nonRelatedAchievements->map(function ($item) {
             return [
-                'name' => $item['name'],
-                'description' => $item['description'],
-                'badge' => $item['badge'],
+                'name' => $item->name,
+                'description' => $item->description,
+                'badge' => $item->badge,
             ];
-        })->toArray(); //TODO: Refactor
+        })->toArray();
     }
 
     private function getActivity(Carbon $dateFrom, Carbon $dateTo): array
     {
         return $this->getCompletedChallenges()
-            ->whereBetween('pivot.updated_at', [$dateFrom, $dateTo])
+            ->whereBetween('pivot.updated_at', [$dateFrom, $dateTo->addDay()])
             ->map(function ($item) {
                 return [
                     'status' => $item->getOriginal('pivot_status'),

@@ -11,12 +11,9 @@ use App\Models\User;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Database\Seeder;
-use Illuminate\Foundation\Testing\WithFaker;
 
 class ChallengerSeeder extends Seeder
 {
-    use WithFaker;
-
     /**
      * Run the database seeds.
      *
@@ -25,39 +22,32 @@ class ChallengerSeeder extends Seeder
      */
     public function run(): void
     {
-
         $maxPoints = Rank::max('required_points');
-
-        $user = User::factory()->create(['name' => 'John Doe']);
-        $achievements = Achievement::orderBy('id')->get(['id']);
-        $challenges = Challenge::factory()->count(25)->create();
-
         $challengerPoints = rand(0, $maxPoints);
+        $user = User::factory()->create(['nick_name' => 'John Doe']);
+        $rank = Rank::where('required_points', '<=', $challengerPoints)->orderByDesc('id')->first();
+        $relatedAchievements = Achievement::orderBy('id')->get(['id']);
 
+        Achievement::factory()->count(10)->create();
 
-        $rank = Rank::where('required_points', '<=', $challengerPoints)
-            ->orderBy('id', 'desc')->first();
-
-        $challenger = Challenger::create(['points' => $challengerPoints,
+        $challenger = Challenger::create([
+            'points' => 100,
             'user_id' => $user->id,
             'rank_id' => $rank->id
         ]);
 
-        $achievements->each(function ($achievement) use ($challenger) {
-            if (rand(0, 3) == 1) {
-                $challenger->achievements()->attach($achievement->id, [
-                    'created_at' => Carbon::now(),
-                ]);
-            }
+        $relatedAchievements->each(function ($achievement) use ($challenger) {
+            $challenger->achievements()->attach($achievement);
         });
 
+        $challenges = Challenge::factory()->count(100)->create();
 
         $challenges->each(function ($challenge) use ($challenger) {
-            if (rand(0, 1) == 1) {
+            if ((bool)random_int(0, 1)) {
                 $statusIndex = array_rand(ChallengeStatuses::toArray());
                 $challenger->challenges()->attach($challenge, [
                     'status' => ChallengeStatuses::toArray()[$statusIndex],
-                    'created_at' => $createdAt = Carbon::now()->subDays(rand(0, 4)),
+                    'created_at' => $createdAt = Carbon::now()->subDays(rand(0, 7)),
                     'updated_at' => $createdAt,
                 ]);
             }
