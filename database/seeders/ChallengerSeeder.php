@@ -28,7 +28,7 @@ class ChallengerSeeder extends Seeder
 
         $maxPoints = Rank::max('required_points');
 
-        $user = User::factory()->create(['name' => 'John Doe']);
+        $user = User::factory()->create(['nick_name' => 'John Doe']);
         $achievements = Achievement::orderBy('id')->get(['id']);
         $challenges = Challenge::factory()->count(25)->create();
 

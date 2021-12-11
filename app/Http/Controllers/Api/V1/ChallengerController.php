@@ -18,7 +18,7 @@ class ChallengerController extends Controller
         return Challenger::where('id', $challengerId)
             ->with([
                 'user' => function ($query) {
-                    $query->select('id', 'name');
+                    $query->select('id', 'nick_name');
                 },
                 'rank' => function ($query) {
                     $query->select('name', 'required_points');
