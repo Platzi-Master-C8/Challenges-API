@@ -16,10 +16,4 @@ yarn-error.log
 /.vscode
 
 /database/data/postgres_data
-
-
-.idea/
-
 phpunit.xml
-
-
