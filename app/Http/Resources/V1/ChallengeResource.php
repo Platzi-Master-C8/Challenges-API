@@ -7,7 +7,6 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class ChallengeResource extends JsonResource
 {
-
     public function toArray($request): array
     {
         return [
@@ -23,7 +22,7 @@ class ChallengeResource extends JsonResource
         return $this->challengers->where('pivot.status', ChallengeStatuses::COMPLETE)
             ->map(function ($challenger) {
                 return [
-                    'name' => $challenger->user->name,
+                    'nick_name' => $challenger->user->nick_name,
                     'points' => $challenger->points,
                     'rank' => $challenger->rank->name
                 ];

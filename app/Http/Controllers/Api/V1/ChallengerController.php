@@ -2,18 +2,25 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Constants\ChallengeStatuses;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\V1\ChallengeChallengerCollection;
 use App\Http\Resources\V1\ChallengerResource;
 use App\Models\Challenger;
 
-class ChallengerController extends Controller
+class ChallengerController extends Controller //TODO: Validations
 {
     public function show(int $challengerId): ChallengerResource
     {
         return new ChallengerResource($this->getChallenger($challengerId));
     }
 
-    private function getChallenger(int $challengerId): Challenger
+    public function challenges(int $challengerId): ChallengeChallengerCollection
+    {
+        return new ChallengeChallengerCollection($this->getCompletedChallenges($challengerId));
+    }
+
+    private function getChallenger(int $challengerId): Challenger //TODO: Query optimization
     {
         return Challenger::where('id', $challengerId)
             ->with([
@@ -30,5 +37,17 @@ class ChallengerController extends Controller
                     $query->select('id')->withPivot('status', 'created_at', 'updated_at');
                 },
             ])->firstOrFail(['id', 'points', 'user_id', 'rank_id']);
+    }
+
+    private function getCompletedChallenges(int $challengerId) //TODO: Query optimization
+    {
+        $challenger = Challenger::where('id', $challengerId)
+            ->with([
+                'challenges' => function ($query) {
+                    $query->select('id', 'name', 'description')->withPivot('status');
+                },
+            ])->firstOrFail('id');
+
+        return $challenger->challenges->where('pivot.status', ChallengeStatuses::COMPLETE);
     }
 }

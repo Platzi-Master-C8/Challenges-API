@@ -31,16 +31,16 @@ class ChallengerSeeder extends Seeder
         Achievement::factory()->count(10)->create();
 
         $challenger = Challenger::create([
-            'points' => 100,
+            'points' => $challengerPoints,
             'user_id' => $user->id,
-            'rank_id' => $rank->id
+            'rank_id' => $rank->id,
         ]);
 
         $relatedAchievements->each(function ($achievement) use ($challenger) {
             $challenger->achievements()->attach($achievement);
         });
 
-        $challenges = Challenge::factory()->count(100)->create();
+        $challenges = Challenge::factory()->count($challengerPoints * 2)->create();
 
         $challenges->each(function ($challenge) use ($challenger) {
             if ((bool)random_int(0, 1)) {

@@ -14,17 +14,17 @@ class RankSeeder extends Seeder
      */
     public function run()
     {
-        Rank::factory()->create([
+        Rank::create([
             'name' => 'Novice',
             'required_points' => 0,
         ]);
 
-        Rank::factory()->create([
+        Rank::create([
             'name' => 'Proficient',
             'required_points' => 101,
         ]);
 
-        Rank::factory()->create([
+        Rank::create([
             'name' => 'Expert',
             'required_points' => 201,
         ]);

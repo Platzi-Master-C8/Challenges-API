@@ -18,8 +18,12 @@ class ChallengerControllerTest extends TestCase
     use RefreshDatabase;
     use WithFaker;
 
-    public function test_get_challenger(): void
+    private $challenger;
+
+    protected function setUp(): void
     {
+        parent::setUp();
+
         Carbon::setTestNow('2021-12-05');
 
         $user = User::factory()->create();
@@ -28,35 +32,37 @@ class ChallengerControllerTest extends TestCase
         Rank::factory()->create(['required_points' => 101]);
         Rank::factory()->create(['required_points' => 201]);
 
-        $relatedAchievements = Achievement::factory()->count(2)->create();
+        $relatedAchievements = Achievement::factory()->count(4)->create();
 
-        Achievement::factory()->count(8)->create();
+        Achievement::factory()->count(10)->create();
 
-        $challenges = Challenge::factory()->count(10)->create();
-        $challenger = Challenger::create([
-            'points' => 100,
-            'user_id' => $user->id,
-            'rank_id' => $rank->id
-        ]);
+        $this->challenges = Challenge::factory()->count(100)->create();
+        $this->challenger = Challenger::factory()
+            ->for($user)
+            ->for($rank)
+            ->create(['points' => 100]);
 
-        $relatedAchievements->each(function ($achievement) use ($challenger) {
-            $challenger->achievements()->attach($achievement);
+        $relatedAchievements->each(function ($achievement) {
+            $this->challenger->achievements()->attach($achievement);
         });
 
-        $challenges->each(function ($challenge) use ($challenger) {
-            $challenger->challenges()->attach($challenge, [
+        $this->challenges->each(function ($challenge) {
+            $this->challenger->challenges()->attach($challenge, [
                 'status' => $this->faker->randomElement(ChallengeStatuses::toArray()),
-                'created_at' => $createdAt = $this->faker->dateTimeBetween('-4 days'),
+                'created_at' => $createdAt = $this->faker->dateTimeBetween('-7 days'),
                 'updated_at' => $createdAt,
             ]);
         });
+    }
 
+    public function test_get_challenger(): void
+    {
         $response = $this->json(
             'GET',
             route('challengers.show', [
-                'challenger' => $challenger->id,
-                'dateFrom' => '2021-12-01',
-                'dateTo' => '2021-12-05',
+                'challenger' => $this->challenger->id,
+                'completed' => 4,
+                'uncompleted' => 2,
             ])
         );
 
@@ -81,14 +87,14 @@ class ChallengerControllerTest extends TestCase
                         ],
                     ],
                     'achievements' => [
-                        'related' => [
+                        'completed' => [
                             [
                                 'name',
                                 'description',
                                 'badge',
                             ],
                         ],
-                        'non_related' => [
+                        'uncompleted' => [
                             [
                                 'name',
                                 'description',
@@ -97,6 +103,27 @@ class ChallengerControllerTest extends TestCase
                         ],
                     ],
                     'activity' => [],
+                ],
+            ]);
+    }
+
+    public function test_get_challenges(): void
+    {
+        $response = $this->json(
+            'GET',
+            route('challengers.challenges', [
+                'challenger' => $this->challenger->id,
+            ])
+        );
+
+        $response->assertOk()
+            ->assertJsonStructure([
+                'data' => [
+                    [
+                        'id',
+                        'name',
+                        'description',
+                    ],
                 ],
             ]);
     }
