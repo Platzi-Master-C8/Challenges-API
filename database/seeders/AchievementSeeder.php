@@ -15,27 +15,21 @@ class AchievementSeeder extends Seeder
     public function run()
     {
         Achievement::create([
-            'name' => 'Sprint',
-            'description' => 'Sprint description',
-            'badge' => 'https://via.placeholder.com/640x480.png/98CA3F?text=Sprint',
-        ]);
-
-        Achievement::create([
             'name' => 'One small step',
-            'description' => 'One small step description',
-            'badge' => 'https://via.placeholder.com/640x480.png/121F3D?text=Step',
-        ]);
-
-        Achievement::create([
-            'name' => '5 days of code',
-            'description' => '5 days of code description',
-            'badge' => 'https://via.placeholder.com/640x480.png/F72201?text=Code',
+            'description' => 'Complete your first task',
+            'badge' => 'https://res.cloudinary.com/detdiabum/image/upload/v1639759223/CG-Challenges-API/OneSmallSteo_igznk8.jpg',
         ]);
 
         Achievement::create([
             'name' => 'Half Done',
-            'description' => 'Half Done description',
-            'badge' => 'https://via.placeholder.com/640x480.png/181818?text=Done',
+            'description' => 'Just begin!',
+            'badge' => 'https://res.cloudinary.com/detdiabum/image/upload/v1639759226/CG-Challenges-API/HalfDone_c3d1l6.jpg',
+        ]);
+
+        Achievement::create([
+            'name' => 'Sprint',
+            'description' => 'Complete two task in one day',
+            'badge' => 'https://res.cloudinary.com/detdiabum/image/upload/v1639759220/CG-Challenges-API/Sprint_okhrgk.jpg',
         ]);
     }
 }
