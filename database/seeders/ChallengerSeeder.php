@@ -28,12 +28,6 @@ class ChallengerSeeder extends Seeder
         $rank = Rank::where('required_points', '<=', $challengerPoints)->orderByDesc('id')->first();
         $relatedAchievements = Achievement::orderBy('id')->get(['id']);
 
-        Achievement::create([
-            'name' => '5 days of code',
-            'description' => 'Complete 5 days of code',
-            'badge' => 'https://res.cloudinary.com/detdiabum/image/upload/v1639759224/CG-Challenges-API/5DaysOfCode_a6iyl7.jpg',
-        ]);
-
         $challenger = Challenger::create([
             'points' => $challengerPoints,
             'user_id' => $user->id,

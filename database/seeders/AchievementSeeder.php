@@ -17,19 +17,25 @@ class AchievementSeeder extends Seeder
         Achievement::create([
             'name' => 'One small step',
             'description' => 'Complete your first task',
-            'badge' => 'https://res.cloudinary.com/detdiabum/image/upload/v1639759223/CG-Challenges-API/OneSmallSteo_igznk8.jpg',
+            'badge' => 'https://res.cloudinary.com/dckunlwcb/image/upload/v1639763361/OneSmallSteo_xs4wev.jpg',
         ]);
 
         Achievement::create([
             'name' => 'Half Done',
             'description' => 'Just begin!',
-            'badge' => 'https://res.cloudinary.com/detdiabum/image/upload/v1639759226/CG-Challenges-API/HalfDone_c3d1l6.jpg',
+            'badge' => 'https://res.cloudinary.com/dckunlwcb/image/upload/v1639763365/HalfDone_rb6qma.jpg',
         ]);
 
         Achievement::create([
             'name' => 'Sprint',
             'description' => 'Complete two task in one day',
-            'badge' => 'https://res.cloudinary.com/detdiabum/image/upload/v1639759220/CG-Challenges-API/Sprint_okhrgk.jpg',
+            'badge' => 'https://res.cloudinary.com/dckunlwcb/image/upload/v1639763357/Sprint_k1ekil.jpg',
+        ]);
+
+        Achievement::create([
+            'name' => '5 days of code',
+            'description' => 'Complete 5 days of code',
+            'badge' => 'https://res.cloudinary.com/dckunlwcb/image/upload/v1639763358/5DaysOfCode_kohn4t.jpg',
         ]);
     }
 }
