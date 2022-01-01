@@ -15,6 +15,7 @@ class RankResource extends JsonResource
             'name' => $this->name,
             'required_points' => $this->required_points,
             'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
         ];
     }
 }

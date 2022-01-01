@@ -19,7 +19,7 @@ class RankControllerTest extends TestCase
     public function test_get_ranks()
     {
 
-        $response = $this->get('/api/V1/ranks');
+        $response = $this->get('/api/v1/ranks');
         $response->assertStatus(200);
         $response->assertJsonStructure([
             'data',
@@ -30,18 +30,16 @@ class RankControllerTest extends TestCase
     public function test_get_rank()
     {
         $rank = Rank::factory()->create();
-        $response = $this->get('/api/V1/ranks/' . $rank->id);
+        $response = $this->get('/api/v1/ranks/' . $rank->id);
         $response->assertJsonStructure([
             'data' => [
                 'id',
                 'name',
                 'required_points',
                 'created_at',
-                'updated_at',
+                'updated_at'
             ],
         ]);
         $response->assertStatus(200);
-
     }
-
 }
