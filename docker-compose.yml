@@ -11,7 +11,3 @@ services:
             - "5432:5432"
         volumes:
             - ./database/data/postgres_data:/var/lib/postgresql/data
-
-    node:
-        image: node:latest
-

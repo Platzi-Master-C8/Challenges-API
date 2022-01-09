@@ -10,5 +10,12 @@
     "license": "ISC",
     "devDependencies": {
         "jest": "^27.4.7"
+    },
+    "jest": {
+        "coverageReporters": [
+            "text",
+            "json",
+            "lcov"
+        ]
     }
 }
