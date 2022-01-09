@@ -16,3 +16,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
+
+Route::get('code', [App\Http\Controllers\CodeRunnerController::class, 'index']);
+Route::post('code', [App\Http\Controllers\CodeRunnerController::class, 'runNode'])->name('run_node');
