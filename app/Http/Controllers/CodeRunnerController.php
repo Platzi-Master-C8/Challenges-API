@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Middleware\Authenticate;
 use App\Models\Challenge;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Http\Request;
@@ -13,79 +14,73 @@ class CodeRunnerController extends Controller
     //Start docker if not running
     public function getChallengeEditor(int $challenge)
     {
-
+        $userIdentifier = $this->getUserIdentifier();
         $challenge = Challenge::find($challenge);
-        try {
-            $user = Auth::user();
 
-            if (!is_null($user)) {
-                $docker_name = "docker-" . $user->id . $user->nick_name;
-            } else {
-                $docker_name = 'docker-guest';
-            }
+        $dockerName = "docker-" . $userIdentifier;
+        shell_exec("docker run -d --name $dockerName  -v "
+            . storage_path()
+            . "/app/ChallengesTests/javascript" . ':/usr/src/app/tests challenges/node');
 
 
-            // THis docker Id could help us a lot in the future to save the docker id of each user
-            $docker_id = shell_exec("docker run -d --name $docker_name  -v "
-                . storage_path()
-                . '/app/ChallengesTests/javascript' . ':/usr/src/app/tests challenges/node');
+        $testFileContent = "const func = require('./user_func.js');\n" . $challenge->test_template;
+        $baseUserTestPath = "ChallengesTests/javascript/" . $challenge->id . "/" . $userIdentifier;
+
+        //In case that test has been updated in database. Test file will be rewritten
+        Storage::disk('local')
+            ->put($baseUserTestPath . '/func.test.js'
+                , $testFileContent);
 
 
-
-
-            $challenge_dir = storage_path() . '/app/ChallengesTests/javascript/'
-                . $challenge->id . '/template.js';
-
-            //Next line is working, but im looking for a better way to do it
-            //$out = Storage::disk('local')->get('ChallengesTests/javascript/cats_0151/template.js');
-
-
-            $out = Storage::disk('local')->get($challenge_dir);
-            //Todo: Reformat to adapt it with user and resolved challenge
-        } catch (FileNotFoundException $e) {
-            $out = "File not found, report it to admins";
+        $userFuncPath = $baseUserTestPath . '/user_func.js';
+        //Create user_func file if not exists
+        if (!Storage::disk('local')->exists($userFuncPath)) {
+            Storage::disk('local')
+                ->put($userFuncPath, $challenge->func_template);
         }
-        return view('codeRunner', ['template' => $challenge->func_template]);
+
+        return view('codeRunner', ['template' => $challenge->func_template, 'challenge_id' => $challenge->id]);
     }
 
 
     public function runNode(Request $request)
     {
-//        $user_id = $request->user()->challenger->id;
-//        $challengeId = $request->challenge_id;
-//        $challengeName = $request->challenge_name;
+
+        $userIdentifier = $this->getUserIdentifier();
+        $language = !is_null($request->language) ? $request->language : 'javascript';
+        $challenge = Challenge::find($request->challenge_id);
 
         try {
-            //Storage path will change when we will be using sessions, check NOTION folder structure defined to understand this at all.
-            Storage::disk('local')->put('ChallengesTests/javascript/cats_0151/user_1564/user_result.js', $request->code);
-            //Todo: Reformat adapt it with user and resolved challenge
+            Storage::disk('local')
+                ->put('ChallengesTests/' . $language . '/' . $challenge->id . '/'
+                    . $userIdentifier . '/user_func.js', $request->code);
 
         } catch (\Exception $e) {
-
-
             return response()->json(['error' => $e->getMessage()]);
         }
-        // Run specified test from docker and redirect output to a file, that file have to be binded with local storage
-        $command = "docker exec docker-user_name  sh -c 'npm run test tests/cats_0151/user_1564/func_0151_1564.test.js -- --json  > tests/cats_0151/user_1564/test.json'";
-        //Todo: Reformat adapt it with user and resolved challenge
 
-        shell_exec($command);
+        Storage::disk('local')->put('ChallengesTests/' . $language . '/' . $challenge->id . '/'
+            . $userIdentifier . '/test.json', '');
 
+        $command = "docker exec docker-$userIdentifier  sh -c 'npm run test tests/$challenge->id/$userIdentifier/func.test.js -- --json"
+            . "> tests/$challenge->id/$userIdentifier/test.json'";
 
+        $result = shell_exec($command);
         try {
-            $path = storage_path() . '/app/ChallengesTests/javascript/cats_0151/user_1564/test.json';
+            $path = storage_path() . "/app/ChallengesTests/$language/$challenge->id/$userIdentifier/test.json";
 
             // npm run jest -- --json return a string with 4 extra unnecessary lines, just trim them
             $this->trimline($path, 4);
-            $result = Storage::disk('local')->get('ChallengesTests/javascript/cats_0151/user_1564/test.json');
+            $result = Storage::disk('local')->get("ChallengesTests/$language/$challenge->id/$userIdentifier/test.json");
         } catch (\Exception $e) {
             $result = $e->getMessage();
         }
 
 
         return view('codeRunner', ['json' => json_decode($result),
-            'template' => $request->code]);
+            'template' => $request->code, 'challenge_id' => $request->challenge_id]);
     }
+
 
     /**
      * @param $file : path to the file to trim
@@ -98,5 +93,15 @@ class CodeRunnerController extends Controller
         $lines = file($file);
         $content = array_slice($lines, $trim);
         file_put_contents($file, $content);
+    }
+
+    /**
+     * @return string
+     * Return a identifier to have always the same path for user tests
+     */
+    private function getUserIdentifier(): string
+    {
+        $user = Auth::user();
+        return !is_null($user) ? $user->challenger->id . $user->nick_name : 'guest';
     }
 }

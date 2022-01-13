@@ -22,9 +22,8 @@
     @else
         <textarea name="code" id="code" cols="60" rows="15" placeholder="type your code here">{{$template}}</textarea>
         <input type="submit" value="Run">
-
+        <input type="hidden" value="{{$challenge_id}}" name="challenge_id">
     @endif
-
 
 </form>
 

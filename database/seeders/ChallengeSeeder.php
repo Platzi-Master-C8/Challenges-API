@@ -48,5 +48,19 @@ class ChallengeSeeder extends Seeder
 
             'test_template' => 'Test template'
         ]);
+
+        Challenge::create([
+            "name" => "Sum",
+            "description" => "Create a function that returns the sum of a + b",
+            "time_out" => 45,
+            "difficulty" => ChallengeDifficulties::LOW,
+            'func_template' => "function sum(a,b){\n\t/*Your code here*/\n}" .
+                "\nmodule.exports=sum;",
+            'test_template' => "test('adds 1 + 2 to equal 3', () => {
+    expect(func(1, 2)).toBe(3);
+});"
+        ]);
+
     }
+
 }
