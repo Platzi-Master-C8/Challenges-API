@@ -18,5 +18,7 @@ Route::get('/', function () {
 });
 
 
-Route::get('code', [App\Http\Controllers\CodeRunnerController::class, 'index']);
+Route::get('code/{challenge_id}', [App\Http\Controllers\CodeRunnerController::class, 'getChallengeEditor']);
+
+
 Route::post('code', [App\Http\Controllers\CodeRunnerController::class, 'runNode'])->name('run_node');

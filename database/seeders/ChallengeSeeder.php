@@ -15,6 +15,8 @@ class ChallengeSeeder extends Seeder
             "description" => "Print the pair numbers from 1 to 100",
             "time_out" => 15,
             "difficulty" => ChallengeDifficulties::LOW,
+            'func_template' => "function pair(){}\nmodule.exports=pair;",
+            'test_template' => 'test template'
         ]);
 
         Challenge::create([
@@ -22,6 +24,9 @@ class ChallengeSeeder extends Seeder
             "description" => "Print the odd numbers from 1 to 100",
             "time_out" => 15,
             "difficulty" => ChallengeDifficulties::LOW,
+            'func_template' => "function odd(\$n) {
+                // your code here\n}\nmodule.exports=odd;",
+            'test_template' => 'here is the test'
         ]);
 
         Challenge::create([
@@ -29,6 +34,8 @@ class ChallengeSeeder extends Seeder
             "description" => "Code fibonacci sequence and print it!",
             "time_out" => 30,
             "difficulty" => ChallengeDifficulties::MEDIUM,
+            'func_template' => "function fibonacci(\$n) {}\nmodule.exports=fibonacci;",
+            'test_template' => 'Test template'
         ]);
 
         Challenge::create([
@@ -36,6 +43,10 @@ class ChallengeSeeder extends Seeder
             "description" => "A Palindrome is a word or phrase that reads the same in one sense as in another. You must make a function that returns true or false if a word is palindrome",
             "time_out" => 45,
             "difficulty" => ChallengeDifficulties::HIGH,
+            'func_template' => "function palindrome(\$w){\n/*Your code here*/}" .
+                "\nmodule.exports=palindrome;",
+
+            'test_template' => 'Test template'
         ]);
     }
 }

@@ -2,27 +2,52 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Challenge;
+use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class CodeRunnerController extends Controller
 {
     //Start docker if not running
-    public function index()
+    public function getChallengeEditor(int $challenge)
     {
+
+        $challenge = Challenge::find($challenge);
         try {
+            $user = Auth::user();
+
+            if (!is_null($user)) {
+                $docker_name = "docker-" . $user->id . $user->nick_name;
+            } else {
+                $docker_name = 'docker-guest';
+            }
+
 
             // THis docker Id could help us a lot in the future to save the docker id of each user
-            $docker_id = shell_exec('docker run -d --name docker-user_name  -v ' . storage_path() . '/app/ChallengesTests/javascript' . ':/usr/src/app/tests challenges/node');
-            $out = Storage::disk('local')->get('ChallengesTests/javascript/cats_0151/template.js');
+            $docker_id = shell_exec("docker run -d --name $docker_name  -v "
+                . storage_path()
+                . '/app/ChallengesTests/javascript' . ':/usr/src/app/tests challenges/node');
+
+
+
+
+            $challenge_dir = storage_path() . '/app/ChallengesTests/javascript/'
+                . $challenge->id . '/template.js';
+
+            //Next line is working, but im looking for a better way to do it
+            //$out = Storage::disk('local')->get('ChallengesTests/javascript/cats_0151/template.js');
+
+
+            $out = Storage::disk('local')->get($challenge_dir);
             //Todo: Reformat to adapt it with user and resolved challenge
-
-        } catch (\Exception $e) {
-            $out = $e->getMessage();
+        } catch (FileNotFoundException $e) {
+            $out = "File not found, report it to admins";
         }
-
-        return view('codeRunner', ['template' => $out]);
+        return view('codeRunner', ['template' => $challenge->func_template]);
     }
+
 
     public function runNode(Request $request)
     {
