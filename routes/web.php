@@ -16,3 +16,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
+
+Route::get('code/{id}', [App\Http\Controllers\CodeRunnerController::class, 'getChallengeEditor']);
+Route::post('code/execute', [App\Http\Controllers\CodeRunnerController::class, 'runNode'])->name('run_node');

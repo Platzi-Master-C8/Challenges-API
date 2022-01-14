@@ -27,3 +27,14 @@ Route::prefix("v1")->group(function () {
     Route::apiResource('challenges', ChallengeController::class)->only('index', 'show');
     Route::apiResource('ranks', App\Http\Controllers\Api\V1\RankController::class);
 });
+//Routes which
+
+// Create routes to give the possibility to start a container and run code from it.
+Route::prefix("runner/")->group(function () {
+    Route::get('/on/{container}', function () {
+    });
+
+
+    Route::get('/check_answer/{container}', function () {
+    });
+});

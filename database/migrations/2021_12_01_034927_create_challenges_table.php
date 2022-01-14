@@ -20,6 +20,9 @@ class CreateChallengesTable extends Migration
             $table->text('description');
             $table->tinyInteger('time_out');
             $table->enum('difficulty', ChallengeDifficulties::toArray());
+
+            $table->text('func_template');
+            $table->text('test_template');
             //TODO: Answers
             $table->timestamps();
         });
