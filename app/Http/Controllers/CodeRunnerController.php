@@ -18,11 +18,15 @@ class CodeRunnerController extends Controller
         $challenge = Challenge::find($challenge);
 
         $dockerName = "docker-" . $userIdentifier;
-        shell_exec("docker run -d --name $dockerName  -v "
+
+        $dockerStatus = shell_exec("docker run -d --name $dockerName  -v "
             . storage_path()
             . "/app/ChallengesTests/javascript" . ':/usr/src/app/tests challenges/node');
 
-
+        //If stopped, start it
+        if (is_null($dockerStatus)) {
+            $dockerStatus = shell_exec("docker start $dockerName");
+        }
         $testFileContent = "const func = require('./user_func.js');\n" . $challenge->test_template;
         $baseUserTestPath = "ChallengesTests/javascript/" . $challenge->id . "/" . $userIdentifier;
 
@@ -39,16 +43,15 @@ class CodeRunnerController extends Controller
                 ->put($userFuncPath, $challenge->func_template);
         }
 
-        return view('codeRunner', ['template' => $challenge->func_template, 'challenge_id' => $challenge->id]);
+        return json_encode(['template' => $challenge->func_template, 'challenge_id' => $challenge->id]);
     }
 
 
-    public function runNode(Request $request)
+    public function runNode(Request $request, int $challenge_id)
     {
-
         $userIdentifier = $this->getUserIdentifier();
         $language = !is_null($request->language) ? $request->language : 'javascript';
-        $challenge = Challenge::find($request->challenge_id);
+        $challenge = Challenge::find($challenge_id);
 
         try {
             Storage::disk('local')
@@ -77,8 +80,8 @@ class CodeRunnerController extends Controller
         }
 
 
-        return view('codeRunner', ['json' => json_decode($result),
-            'template' => $request->code, 'challenge_id' => $request->challenge_id]);
+        return ['json' => json_decode($result),
+            'template' => $request->code];
     }
 
 
