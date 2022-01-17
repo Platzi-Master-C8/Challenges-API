@@ -2,101 +2,85 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Middleware\Authenticate;
+use App\Constants\StorageDisks;
 use App\Models\Challenge;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
+use App\Util\StorageWriter;
 
 class CodeRunnerController extends Controller
 {
+
     //Start docker if not running
-    public function getChallengeEditor(int $challenge)
+    /**
+     * @param Challenge $challenge
+     * @return false|string
+     *
+     *
+     */
+    public function getChallengeEditor(Challenge $challenge)
     {
+        $writer = new StorageWriter(StorageDisks::LOCAL_DISK, true);
         $userIdentifier = $this->getUserIdentifier();
-        $challenge = Challenge::find($challenge);
+        $writer->cdDirs(["ChallengesTests", 'javascript', $challenge->id, $userIdentifier]);
+
 
         $dockerName = "docker-" . $userIdentifier;
+        $dockerDir = "/usr/src/app/tests challenges/node";
 
         $dockerStatus = shell_exec("docker run -d --name $dockerName  -v "
-            . storage_path()
-            . "/app/ChallengesTests/javascript" . ':/usr/src/app/tests challenges/node');
+            . storage_path() . "/app/ChallengesTests/javascript" . ':' . $dockerDir);
 
         //If stopped, start it
         if (is_null($dockerStatus)) {
-            $dockerStatus = shell_exec("docker start $dockerName");
+            shell_exec("docker start $dockerName");
         }
-        $testFileContent = "const func = require('./user_func.js');\n" . $challenge->test_template;
-        $baseUserTestPath = "ChallengesTests/javascript/" . $challenge->id . "/" . $userIdentifier;
 
         //In case that test has been updated in database. Test file will be rewritten
-        Storage::disk('local')
-            ->put($baseUserTestPath . '/func.test.js'
-                , $testFileContent);
+        $writer->write("func.test.js", $challenge->test_template);
 
-
-        $userFuncPath = $baseUserTestPath . '/user_func.js';
         //Create user_func file if not exists
-        if (!Storage::disk('local')->exists($userFuncPath)) {
-            Storage::disk('local')
-                ->put($userFuncPath, $challenge->func_template);
+        if (!$writer->exists('user_func.js')) {
+            $writer->write('user_func.js', $challenge->func_template);
         }
 
-        return json_encode(['template' => $challenge->func_template, 'challenge_id' => $challenge->id]);
+
+        return json_encode(['template' => $challenge->func_template]);
     }
 
 
-    public function runNode(Request $request, int $challenge_id)
+    public function runNode(Request $request, Challenge $challenge): array
     {
         $userIdentifier = $this->getUserIdentifier();
-        $language = !is_null($request->language) ? $request->language : 'javascript';
-        $challenge = Challenge::find($challenge_id);
 
-        try {
-            Storage::disk('local')
-                ->put('ChallengesTests/' . $language . '/' . $challenge->id . '/'
-                    . $userIdentifier . '/user_func.js', $request->code);
+        $writer = new StorageWriter(StorageDisks::LOCAL_DISK, true);
 
-        } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()]);
-        }
+        $writer->cdDirs(["ChallengesTests", "javascript", $challenge->id, $userIdentifier]);
 
-        Storage::disk('local')->put('ChallengesTests/' . $language . '/' . $challenge->id . '/'
-            . $userIdentifier . '/test.json', '');
+        $writer->write("user_func.js", $request->code);
+
+        //Clean test file or create if not exist
+        $writer->write("test.json", '');
+
 
         $command = "docker exec docker-$userIdentifier  sh -c 'npm run test tests/$challenge->id/$userIdentifier/func.test.js -- --json"
             . "> tests/$challenge->id/$userIdentifier/test.json'";
 
-        $result = shell_exec($command);
-        try {
-            $path = storage_path() . "/app/ChallengesTests/$language/$challenge->id/$userIdentifier/test.json";
+        shell_exec($command);
+        // npm run jest -- --json return a string with 4 extra unnecessary lines, just trim them
 
-            // npm run jest -- --json return a string with 4 extra unnecessary lines, just trim them
-            $this->trimline($path, 4);
-            $result = Storage::disk('local')->get("ChallengesTests/$language/$challenge->id/$userIdentifier/test.json");
-        } catch (\Exception $e) {
-            $result = $e->getMessage();
+        $writer->trimFile(4, 'test.json');
+        try {
+            $result = $writer->get('test.json');
+        } catch (FileNotFoundException $e) {
+            $result = '{"passed": false, "message": "Server error"}';
         }
 
-
-        return ['json' => json_decode($result),
+        return ['test_result' => json_decode($result),
             'template' => $request->code];
     }
 
-
-    /**
-     * @param $file : path to the file to trim
-     * @param $trim : number of lines to trim
-     * @return void
-     * Trim first $trim lines from the $file
-     */
-    private function trimLine($file, $trim)
-    {
-        $lines = file($file);
-        $content = array_slice($lines, $trim);
-        file_put_contents($file, $content);
-    }
 
     /**
      * @return string

@@ -29,7 +29,7 @@ Route::prefix("v1")->group(function () {
 
 
     Route::prefix("runner/")->group(function () {
-        Route::get('/on/{challenge_id}', [App\Http\Controllers\CodeRunnerController::class, 'getChallengeEditor']);
-        Route::post('/check/{challenge_id}', [App\Http\Controllers\CodeRunnerController::class, 'runNode']);
+        Route::get('/on/{challenge}', [App\Http\Controllers\CodeRunnerController::class, 'getChallengeEditor']);
+        Route::post('/check/{challenge}', [App\Http\Controllers\CodeRunnerController::class, 'runNode']);
     });
 });
