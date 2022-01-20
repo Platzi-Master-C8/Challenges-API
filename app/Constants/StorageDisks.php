@@ -3,7 +3,7 @@
 
 namespace App\Constants;
 
-class StorageDisks
+class StorageDisks  implements IConstant
 {
     const PUBLIC_DISK = 'public';
     const PRIVATE_DISK = 'private';
