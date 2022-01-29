@@ -16,4 +16,3 @@ yarn-error.log
 /.vscode
 
 /database/data/postgres_data
-phpunit.xml
