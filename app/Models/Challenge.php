@@ -34,16 +34,16 @@ class Challenge extends Model
         // Maybe its better just retrieve the code challenge from database
 
         static::created(function ($challenge) {
-//            Storage::disk('local')->makeDirectory('ChallengesTests/javascript/' . $challenge->id);
-//
-//            chmod(storage_path('app/ChallengesTests/javascript/' . $challenge->id), 0766);
+            Storage::disk('local')->makeDirectory('ChallengesTests/javascript/' . $challenge->id);
+
+            chmod(storage_path('app/ChallengesTests/javascript/' . $challenge->id), 0777);
 
 
             Storage::disk('local')->put('ChallengesTests/javascript/'
                 . $challenge->id
                 . '/template.js',
                 $challenge->func_template);
-            chmod(storage_path('app/ChallengesTests/javascript/' . $challenge->id . '/template.js'), 0766);
+            chmod(storage_path('app/ChallengesTests/javascript/' . $challenge->id . '/template.js'), 0777);
         });
 
         static::updated(function ($challenge) {

@@ -15,9 +15,9 @@ class DatabaseSeeder extends Seeder
     public function run()
     {
         Storage::disk('local')->makeDirectory('ChallengesTests');
-        chmod(storage_path('app/ChallengesTests'), 0766);
+        chmod(storage_path('app/ChallengesTests'), 0777);
         Storage::disk('local')->makeDirectory('ChallengesTests/javascript');
-        chmod(storage_path('app/ChallengesTests/javascript'), 0766);
+        chmod(storage_path('app/ChallengesTests/javascript'), 0777);
 
 
         $this->call([
