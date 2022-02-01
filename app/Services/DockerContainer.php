@@ -64,10 +64,26 @@ class DockerContainer
     public function play()
     {
         $this->isRunning = true;
+        $detach = $this->detachable ? '-d' : '';
         $bindMount = $this->bindMount ? '-v ' . $this->localStorageBind . ':' . $this->dockerStorageBind : '';
-        $command = '';
+        $name = $this->name ? "--name $this->name" : '';
 
+
+        $command = 'docker run ' . $detach . $name . $bindMount . $this->image;
+
+        $running = $this->run($command);
+        if (!$running) {
+            $this->start();
+        };
     }
 
+    public function run($command)
+    {
+        return shell_exec('docker run ' . $command);
+    }
 
+    public function start()
+    {
+        return shell_exec('docker start ' . $this->name);
+    }
 }

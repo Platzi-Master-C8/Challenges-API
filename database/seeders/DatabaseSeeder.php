@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Storage;
 
 class DatabaseSeeder extends Seeder
 {
@@ -13,6 +14,12 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
+        Storage::disk('local')->makeDirectory('ChallengesTests');
+        chmod(storage_path('app/ChallengesTests'), 0766);
+        Storage::disk('local')->makeDirectory('ChallengesTests/javascript');
+        chmod(storage_path('app/ChallengesTests/javascript'), 0766);
+
+
         $this->call([
             RankSeeder::class,
             AchievementSeeder::class,
