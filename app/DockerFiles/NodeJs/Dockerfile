@@ -6,5 +6,4 @@ COPY package*.json ./
 
 RUN npm install
 
-EXPOSE 8081
 ENTRYPOINT ["tail", "-f", "/dev/null"]
