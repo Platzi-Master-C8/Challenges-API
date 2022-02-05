@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Constants\AvailableDockerLanguages;
 use App\Constants\DockerChallengesPaths;
 use App\Constants\DockerImagesNames;
 use App\Constants\LocalChallengesPaths;
 use App\Constants\StorageDisks;
 use App\Models\Challenge;
+use App\Util\JsonTestParser;
+use Exception;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,13 +17,9 @@ use App\Util\StorageWriter;
 
 class CodeRunnerController extends Controller
 {
-
-    //Start docker if not running
     /**
      * @param Challenge $challenge
      * @return false|string
-     *
-     *
      */
     public function getChallengeEditor(Challenge $challenge)
     {
@@ -51,6 +50,9 @@ class CodeRunnerController extends Controller
     }
 
 
+    /**
+     * @throws Exception in case  JsonTestParser::parse receives a non-supported language
+     */
     public function runNode(Request $request, Challenge $challenge): array
     {
         $userIdentifier = $this->getUserIdentifier();
@@ -63,6 +65,7 @@ class CodeRunnerController extends Controller
 
         //Clean test file or create if not exist
         $writer->write("test.json", '');
+        //This should be replaced with docker class
         $command = "docker exec docker-$userIdentifier  sh -c 'npm run test tests/$challenge->id/$userIdentifier/func.test.js -- --json"
             . "> tests/$challenge->id/$userIdentifier/test.json'";
 
@@ -75,19 +78,20 @@ class CodeRunnerController extends Controller
         } catch (FileNotFoundException $e) {
             $result = '{"passed": false, "message": "Server error"}';
         }
-// With Async we'll have to stop container, to get server response faster
-//        $stopCommand = "docker stop docker-$userIdentifier";
-//        shell_exec($stopCommand);
+        // We have to stop containers with Async in order to get server response faster
+
+        //        $stopCommand = "docker stop docker-$userIdentifier";
+        //        shell_exec($s topCommand);
 
 
-        return ['test_result' => json_decode($result),
+        $json = JsonTestParser::parse(json_decode($result), AvailableDockerLanguages::JS);
+        return ['test_result' => $json,
             'template' => $request->code];
     }
 
-
     /**
      * @return string
-     * Return a identifier to have always the same path for user tests
+     * Return user identifier to have always the same path for user tests
      */
     private function getUserIdentifier(): string
     {
