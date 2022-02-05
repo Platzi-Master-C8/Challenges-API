@@ -35,10 +35,15 @@ class Challenge extends Model
 
         static::created(function ($challenge) {
             Storage::disk('local')->makeDirectory('ChallengesTests/javascript/' . $challenge->id);
+
+            chmod(storage_path('app/ChallengesTests/javascript/' . $challenge->id), 0777);
+
+
             Storage::disk('local')->put('ChallengesTests/javascript/'
                 . $challenge->id
                 . '/template.js',
                 $challenge->func_template);
+            chmod(storage_path('app/ChallengesTests/javascript/' . $challenge->id . '/template.js'), 0777);
         });
 
         static::updated(function ($challenge) {

@@ -34,7 +34,6 @@ class CodeRunnerController extends Controller
         $dockerStatus = shell_exec("docker run -d --name $dockerName  -v "
             . storage_path() . LocalChallengesPaths::NODE_PATH . ':' . DockerChallengesPaths::NODE_PATH . ' ' . DockerImagesNames::NODE_IMAGE);
 
-
         //If stopped, start it
         if (is_null($dockerStatus)) {
             shell_exec("docker start $dockerName");
