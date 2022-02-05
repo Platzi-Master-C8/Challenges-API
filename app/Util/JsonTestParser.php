@@ -33,13 +33,22 @@ class JsonTestParser
     {
         $data['message'] = $json->testResults[0]->message;
         $data['status'] = $json->testResults[0]->status;
+        $data['tests'] = array_map(function ($assertion) {
+            return [
+                'name' => $assertion->title,
+                'test_status' => $assertion->status,
+                'failure_messages' => $assertion->failureMessages,
+            ];
+        }, $json->testResults[0]->assertionResults);
+
+        $data['tests_passed'] = $json->numPassedTests;
+        $data['tests_failed'] = $json->numFailedTests;
 
         return $data;
     }
 
     private static function parsePhp($json): array
     {
-
         /*Todo: We could implement php test in the future, we know how phpunit works, so it would be very easy for us*/
         return [];
     }

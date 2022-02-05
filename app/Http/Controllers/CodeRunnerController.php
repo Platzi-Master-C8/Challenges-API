@@ -17,13 +17,9 @@ use App\Util\StorageWriter;
 
 class CodeRunnerController extends Controller
 {
-
-    //Start docker if not running
     /**
      * @param Challenge $challenge
      * @return false|string
-     *
-     *
      */
     public function getChallengeEditor(Challenge $challenge)
     {
@@ -85,7 +81,7 @@ class CodeRunnerController extends Controller
         // We have to stop containers with Async in order to get server response faster
 
         //        $stopCommand = "docker stop docker-$userIdentifier";
-        //        shell_exec($stopCommand);
+        //        shell_exec($s topCommand);
 
 
         $json = JsonTestParser::parse(json_decode($result), AvailableDockerLanguages::JS);
