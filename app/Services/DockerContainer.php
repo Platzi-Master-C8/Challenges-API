@@ -4,18 +4,17 @@ namespace App\Services;
 
 use App\Constants\DockerImagesNames;
 use Exception;
-use Symfony\Component\Process\Process;
 
 class DockerContainer
 {
     private string $id;
     private string $name;
     private string $image;
-    private bool $isRunning;
+
     private string $localStorageBind;
     private string $dockerStorageBind;
-    private bool $detachable;
-    private bool $bindMount;
+    private bool $detachable = false;
+    private bool $bindMount = false;
 
     /**
      * @param string $name : Docker name
@@ -64,26 +63,33 @@ class DockerContainer
     public function play()
     {
         $this->isRunning = true;
-        $detach = $this->detachable ? '-d' : '';
-        $bindMount = $this->bindMount ? '-v ' . $this->localStorageBind . ':' . $this->dockerStorageBind : '';
-        $name = $this->name ? "--name $this->name" : '';
-
-
+        $detach = $this->detachable ? '-d ' : '';
+        $bindMount = $this->bindMount ? '-v ' . $this->localStorageBind . ':' . $this->dockerStorageBind . ' ' : '';
+        $name = $this->name ? "--name $this->name " : '';
         $command = 'docker run ' . $detach . $name . $bindMount . $this->image;
+        $this->run($command);
+    }
 
-        $running = $this->run($command);
-        if (!$running) {
+    private function run($command)
+    {
+        $status = shell_exec($command);
+        if (!$status) {
             $this->start();
-        };
+        }
     }
 
-    public function run($command)
+    public function exec($command)
     {
-        return shell_exec('docker run ' . $command);
+        shell_exec("docker exec " . $this->name . ' ' . $command);
     }
 
-    public function start()
+    private function start(): void
     {
-        return shell_exec('docker start ' . $this->name);
+        shell_exec('docker start ' . $this->name);
+    }
+
+    public function stop()
+    {
+        shell_exec('docker stop ' . $this->name);
     }
 }

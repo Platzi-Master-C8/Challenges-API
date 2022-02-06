@@ -9,7 +9,7 @@ class LocalChallengesPaths implements IConstant
     public static function toArray(): array
     {
         return [
-            self::NODE_PATH,
+            storage_path() . self::NODE_PATH,
         ];
     }
 }
