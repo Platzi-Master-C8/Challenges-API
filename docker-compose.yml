@@ -1,13 +1,15 @@
 version: '3.3'
 
 services:
-  postgres:
-    image: postgres:13
-    environment:
-      - POSTGRES_DB=platzi-challenges
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-    ports:
-      - "5432:5432"
-    volumes:
-      - ./database/data/postgres_data:/var/lib/postgresql/data
+    postgres:
+        image: postgres:13
+        environment:
+            - POSTGRES_DB=platzi-challenges
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=postgres
+        ports:
+            - "5432:5432"
+        volumes:
+            - ./database/data/postgres_data:/var/lib/postgresql/data
+
+

@@ -2,7 +2,7 @@
 
 namespace App\Constants;
 
-class ChallengeDifficulties
+class ChallengeDifficulties implements IConstant
 {
     public const LOW = 'low';
     public const MEDIUM = 'medium';

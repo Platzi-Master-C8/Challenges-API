@@ -2,7 +2,7 @@
 
 namespace App\Constants;
 
-class ChallengeStatuses
+class ChallengeStatuses implements IConstant
 {
     public const IN_PROGRESS = 'in_progress';
     public const INCOMPLETE = 'incomplete';
