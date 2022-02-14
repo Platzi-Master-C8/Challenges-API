@@ -61,8 +61,6 @@ class ChallengerControllerTest extends TestCase
             'GET',
             route('challengers.show', [
                 'challenger' => $this->challenger->id,
-                'completed' => 4,
-                'uncompleted' => 2,
             ])
         );
 
@@ -87,19 +85,11 @@ class ChallengerControllerTest extends TestCase
                         ],
                     ],
                     'achievements' => [
-                        'completed' => [
-                            [
-                                'name',
-                                'description',
-                                'badge',
-                            ],
-                        ],
-                        'uncompleted' => [
-                            [
-                                'name',
-                                'description',
-                                'badge',
-                            ],
+                        [
+                            'name',
+                            'description',
+                            'badge',
+                            'is_complete',
                         ],
                     ],
                     'activity' => [],
