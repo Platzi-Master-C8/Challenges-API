@@ -87,19 +87,11 @@ class ChallengerControllerTest extends TestCase
                         ],
                     ],
                     'achievements' => [
-                        'completed' => [
-                            [
-                                'name',
-                                'description',
-                                'badge',
-                            ],
-                        ],
-                        'uncompleted' => [
-                            [
-                                'name',
-                                'description',
-                                'badge',
-                            ],
+                        [
+                            'name',
+                            'description',
+                            'badge',
+                            'is_complete',
                         ],
                     ],
                     'activity' => [],

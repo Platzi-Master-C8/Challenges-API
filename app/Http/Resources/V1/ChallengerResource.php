@@ -3,55 +3,57 @@
 namespace App\Http\Resources\V1;
 
 use App\Constants\ChallengeStatuses;
-use App\Models\Achievement;
-use App\Models\Rank;
-use Carbon\Carbon;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class ChallengerResource extends JsonResource
 {
-    private const ACHIEVEMENTS = [
-        'completed' => 4,
-        'uncompleted' => 2,
-    ];
-
     public function toArray($request): array
     {
-        $completedChallenges = (int)$request->get('completed') ?: self::ACHIEVEMENTS['completed'];
-        $uncompletedChallenges = (int)$request->get('uncompleted') ?: self::ACHIEVEMENTS['uncompleted'];
-
         return [
             'id' => $this->id,
             'nick_name' => $this->user->nick_name,
             'points' => $this->points,
             'challenges' => [
-                'completed' => $this->completedChallengesAmount(),
-                'streak' => $this->challengeStreakAmount()
+                'completed' => $this->getCompletedChallengesAmount(),
+                'streak' => $this->getChallengesStreak()
             ],
             'ranks' => [
                 'current' => $this->getCurrentRank(),
                 'next' => $this->getNextRank(),
             ],
-            'achievements' => [
-                'completed' => $this->getCompleteAchievements($completedChallenges),
-                'uncompleted' => $this->getUncompletedAchievements($uncompletedChallenges),
-            ],
-            'activity' => $this->getActivity(),
+            'achievements' => $this->getAchievements(),
+            'activity' => $this->getLastWeekActivity(),
         ];
     }
 
-    private function completedChallengesAmount(): int
+    private function getCompletedChallengesAmount(): int
     {
-        return $this->getCompleteChallenges()->count();
+        return $this->getCompletedChallenges()->count();
     }
 
-    private function challengeStreakAmount(): int
+    private function getChallengesStreak(): int
     {
-        return $this->getCompleteChallenges()->filter(function ($value) {
-            return date("Y-m-d", strtotime(now())) === date("Y-m-d", strtotime($value->pivot->updated_at));
-        })->count();
+        $lastDateOfActivity = date_create($this->getActivity()->keys()->first());
+        $currentDate = date_create(date('Y-m-d', strtotime(now())));
+        $streak = 0;
+
+        if (date_diff($currentDate, $lastDateOfActivity)->days > 1) {
+            return $streak;
+        }
+
+        $activityDays = $this->getActivityDays();
+
+        for ($i = 0; $i < count($activityDays) - 1; $i++) {
+            if ($activityDays[$i] - $activityDays[$i + 1] != 1) {
+                break;
+            }
+
+            $streak++;
+        }
+
+        return $streak + 1;
     }
 
     private function getCurrentRank(): array
@@ -62,7 +64,7 @@ class ChallengerResource extends JsonResource
         ];
     }
 
-    private function getNextRank(): array //TODO: Cache layer
+    private function getNextRank(): array
     {
         $nextRank = DB::table('ranks')
             ->where('required_points', '>', $this->points)
@@ -75,54 +77,52 @@ class ChallengerResource extends JsonResource
         ];
     }
 
-    private function getCompleteAchievements(int $completedChallenges): array
+    private function getAchievements(): array
     {
-        $relatedAchievements = $this->achievements;
-
-        return $relatedAchievements->take($completedChallenges)->map(function ($item) {
-            return [
-                'name' => $item['name'],
-                'description' => $item['description'],
-                'badge' => $item['badge'],
-            ];
-        })->toArray();
-    }
-
-    private function getUncompletedAchievements(int $uncompletedChallenges): array //TODO: Cache layer
-    {
-        $nonRelatedAchievements = DB::table('achievements')
-            ->whereNotIn('id', $this->achievements->pluck('id'))
+        $achievements = DB::table('achievements')
             ->orderByDesc('created_at')
-            ->limit($uncompletedChallenges)
-            ->get(['name', 'description', 'badge']);
+            ->get(['id', 'name', 'description', 'badge']);
 
-        return $nonRelatedAchievements->map(function ($item) {
+        return $achievements->map(function ($item) {
             return [
                 'name' => $item->name,
                 'description' => $item->description,
                 'badge' => $item->badge,
+                'is_complete' => in_array($item->id, $this->achievements->pluck('id')->toArray()),
             ];
         })->toArray();
     }
 
-    private function getActivity(): array
+    private function getLastWeekActivity(): array
     {
-        return $this->getCompleteChallenges()
-            ->whereBetween(
-                'pivot.updated_at',
-                [date('Y-m-d', strtotime(now()->subWeek())), date('Y-m-d', strtotime(now()->addDay()))]
-            )
-            ->map(function ($item) {
-                return [
-                    'status' => $item->getOriginal('pivot_status'),
-                    'updated_at' => date('Y-m-d', strtotime($item->getOriginal('pivot_updated_at'))),
-                ];
-            })->groupBy('updated_at')->map(function ($item) {
-                return $item->count();
-            })->toArray();
+        return $this->getActivity()->takeUntil(function ($item, $date) {
+            return $date < date('Y-m-d', strtotime(now()->subWeek()));
+        })->toArray();
     }
 
-    private function getCompleteChallenges(): Collection
+    private function getActivityDays(): array
+    {
+        return $this->getActivity()->map(function ($item, $date) {
+            return substr($date, -2);
+        })->values()->toArray();
+    }
+
+    private function getActivity(): Collection
+    {
+        return $this->getCompletedChallenges()
+            ->map(function ($item) {
+                return [
+                    'updated_at' => date('Y-m-d', strtotime($item->getOriginal('pivot_updated_at'))),
+                ];
+            })
+            ->sortByDesc('updated_at')
+            ->groupBy('updated_at')
+            ->map(function ($item) {
+                return $item->count();
+            });
+    }
+
+    private function getCompletedChallenges(): Collection
     {
         return $this->challenges->where('pivot.status', ChallengeStatuses::COMPLETE);
     }

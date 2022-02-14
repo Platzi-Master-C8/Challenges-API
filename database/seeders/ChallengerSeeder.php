@@ -38,6 +38,8 @@ class ChallengerSeeder extends Seeder
             $challenger->achievements()->attach($achievement);
         });
 
+        Achievement::factory()->count(5)->create();
+
         $challenges = Challenge::factory()->count($challengerPoints * 2)->create();
 
         $challenges->each(function ($challenge) use ($challenger) {
