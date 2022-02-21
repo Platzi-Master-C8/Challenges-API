@@ -56,4 +56,33 @@ class ChallengesControllerTest extends TestCase
             'challengers_has_completed' => [['challenger', 'points', 'rank']],
         ]]);
     }
+
+    public function test_store_challenge()
+    {
+        $data = [
+            'name' => 'random',
+            'description' => 'Get a random number',
+            'time_out' => '15',
+            'difficulty' => 'low',
+            'func_template' => 'function random($min, $max) {
+                return rand($min, $max);
+            }',
+            'test_template' => 'function test($min, $max) {
+                return random($min, $max) == rand($min, $max);
+            }',
+
+        ];
+
+        $response = $this->post('/api/v1/challenges', array_merge($data, ['token' => 'h2405kal2rnk123']));
+        $response->assertStatus(201);
+
+        $response->assertJsonStructure(["data" => [
+            'id',
+            'name',
+            'description',
+            'time_out',
+            'challengers_has_completed' => [],
+        ]]);
+        $this->assertDatabaseHas('challenges', $data);
+    }
 }
