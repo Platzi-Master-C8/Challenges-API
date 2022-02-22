@@ -31,7 +31,6 @@ class CodeRunnerController extends Controller
 
         $docker = new DockerContainer("node-" . $userIdentifier, DockerImagesNames::NODE_IMAGE);
         $docker->bindMount(storage_path(LocalChallengesPaths::NODE_PATH), DockerChallengesPaths::NODE_PATH)->detach()->play();
-        g
         $writer = new StorageWriter(StorageDisks::LOCAL_DISK, true,
             ["ChallengesTests", 'javascript', $challenge->id, $userIdentifier]);
 
