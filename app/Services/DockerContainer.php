@@ -42,6 +42,7 @@ class DockerContainer
     public function detach()
     {
         $this->detachable = true;
+        return $this;
     }
 
     public function bindMount($localStorageBind, $dockerStorageBind): DockerContainer

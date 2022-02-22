@@ -13,7 +13,8 @@ class Challenge extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name', 'description', 'time_out', 'difficult'
+        'name', 'description', 'time_out', 'difficulty',
+        'func_template', 'test_template',
     ];
 
     public function challengers(): BelongsToMany

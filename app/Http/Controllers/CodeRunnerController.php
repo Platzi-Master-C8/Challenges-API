@@ -30,8 +30,8 @@ class CodeRunnerController extends Controller
         $userIdentifier = $this->getUserIdentifier();
 
         $docker = new DockerContainer("node-" . $userIdentifier, DockerImagesNames::NODE_IMAGE);
-        $docker->bindMount(storage_path(LocalChallengesPaths::NODE_PATH), DockerChallengesPaths::NODE_PATH)->play();
-
+        $docker->bindMount(storage_path(LocalChallengesPaths::NODE_PATH), DockerChallengesPaths::NODE_PATH)->detach()->play();
+        g
         $writer = new StorageWriter(StorageDisks::LOCAL_DISK, true,
             ["ChallengesTests", 'javascript', $challenge->id, $userIdentifier]);
 
@@ -59,7 +59,7 @@ class CodeRunnerController extends Controller
         $docker = new DockerContainer("node-" . $userIdentifier, DockerImagesNames::NODE_IMAGE);
 
 
-        $docker->exec("sh -c 'npm run test tests/$challenge->id/$userIdentifier/func.test.js -- --json"
+        $docker->detach()->exec("sh -c 'npm run test tests/$challenge->id/$userIdentifier/func.test.js -- --json"
             . "> tests/$challenge->id/$userIdentifier/test.json'");
 
         // npm run jest -- --json return a string with 4 extra unnecessary lines, just trim them

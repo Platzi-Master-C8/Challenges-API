@@ -24,10 +24,8 @@ Route::prefix("v1")->group(function () {
     Route::apiResource('achievements', App\Http\Controllers\Api\V1\AchievementController::class);
     Route::apiResource('challengers', ChallengerController::class)->only('show');
     Route::get('challengers/{challenger}/challenges', [ChallengerController::class, 'challenges'])->name('challengers.challenges');
-    Route::apiResource('challenges', ChallengeController::class)->only('index', 'show');
+    Route::apiResource('challenges', ChallengeController::class)->only('index', 'show', 'store');
     Route::apiResource('ranks', App\Http\Controllers\Api\V1\RankController::class);
-
-
     Route::prefix("runner/")->group(function () {
         Route::get('/on/{challenge}', [App\Http\Controllers\CodeRunnerController::class, 'getChallengeEditor']);
         Route::post('/check/{challenge}', [App\Http\Controllers\CodeRunnerController::class, 'runNode']);
