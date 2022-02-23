@@ -13,20 +13,23 @@ class CreateUsersTable extends Migration
      */
     public function up()
     {
-        Schema::create('users', function (Blueprint $table) {
-            $table->id();
-            $table->string('full_name', 60);
-            $table->string('nick_name', 30);
-            $table->boolean('is_admin')->default(false);
-            $table->string('email')->unique();
-            $table->text('profile_image');
-            $table->bigInteger('strikes')->default(0);
-            $table->string('sub', 120);
-            $table->timestamp('created_at');
+        if (env('APP_ENV') == 'testing' || env('APP_ENV') == 'local') {
 
-            $table->foreignId('country_id')->nullable()->constrained('countries')->restrictOnDelete();
-            $table->foreignId('gender_id')->nullable()->constrained('genders')->restrictOnDelete();
-        });
+            Schema::create('users', function (Blueprint $table) {
+                $table->id();
+                $table->string('full_name', 60);
+                $table->string('nick_name', 30);
+                $table->boolean('is_admin')->default(false);
+                $table->string('email')->unique();
+                $table->text('profile_image');
+                $table->bigInteger('strikes')->default(0);
+                $table->string('sub', 120);
+                $table->timestamp('created_at');
+
+                $table->foreignId('country_id')->nullable()->constrained('countries')->restrictOnDelete();
+                $table->foreignId('gender_id')->nullable()->constrained('genders')->restrictOnDelete();
+            });
+        }
     }
 
     /**
@@ -36,6 +39,9 @@ class CreateUsersTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('users');
+        if (env('APP_ENV') == 'testing' || env('APP_ENV') == 'local') {
+
+            Schema::dropIfExists('users');
+        }
     }
 }

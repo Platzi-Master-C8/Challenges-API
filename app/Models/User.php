@@ -12,6 +12,7 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
+    protected $table = 'users';
     /**
      * The name of the "updated at" column.
      *
@@ -49,8 +50,8 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
-    public function challenger(): BelongsTo
+    public function challenger(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
-        return $this->belongsTo(Challenger::class);
+        return $this->hasOne(Challenger::class);
     }
 }

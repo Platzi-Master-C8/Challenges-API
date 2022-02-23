@@ -2,91 +2,81 @@
 
 namespace App\Http\Controllers;
 
-use App\Constants\{
-    AvailableDockerLanguages,
-    DockerChallengesPaths,
-    DockerImagesNames,
-    LocalChallengesPaths,
-    StorageDisks,
-};
-use App\Util\{JsonTestParser, StorageWriter};
-
+use App\Constants\ChallengeStatuses;
+use App\Factories\CodeRunner\CodeRunnerFactory;
+use App\Http\Resources\V1\ChallengeResource;
 use App\Models\Challenge;
+use App\Models\User;
 use Exception;
-use Illuminate\Contracts\Filesystem\FileNotFoundException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Services\DockerContainer;
 
 class CodeRunnerController extends Controller
 {
     /**
      * @param Challenge $challenge
-     * @return false|string
+     * @param string $engine
+     * @return ChallengeResource|string
      * @throws Exception
      */
-    public function getChallengeEditor(Challenge $challenge)
+    public function getChallengeEditor(string $engine, Challenge $challenge)
     {
         $userIdentifier = $this->getUserIdentifier();
 
-        $docker = new DockerContainer("node-" . $userIdentifier, DockerImagesNames::NODE_IMAGE);
-        $docker->bindMount(storage_path(LocalChallengesPaths::NODE_PATH), DockerChallengesPaths::NODE_PATH)->detach()->play();
-        $writer = new StorageWriter(StorageDisks::LOCAL_DISK, true,
-            ["ChallengesTests", 'javascript', $challenge->id, $userIdentifier]);
-
-        //In case that test has been updated in database. Test file will be overwritten
-        $writer->write("func.test.js", $challenge->test_template);
-        //Create user_func file if not exists.
-        // !QUESTION: How could I improve this?
-        if (!$writer->exists('user_func.js')) {
-            $writer->write('user_func.js', $challenge->func_template);
+        try {
+            $runner = CodeRunnerFactory::create($engine);
+        } catch (Exception $e) {
+            return json_encode(['error' => $e->getMessage()]);
         }
-        return json_encode(['template' => $challenge->func_template]);
+
+        $runner->prepareRunner($challenge, $userIdentifier);
+        return new ChallengeResource($challenge);
     }
 
     /**
-     * @throws Exception in case  JsonTestParser::parse receives a non-supported language
+     * @throws Exception
      */
-    public function runNode(Request $request, Challenge $challenge): array
+    public function run(Request $request, string $engine, Challenge $challenge): string
     {
         $userIdentifier = $this->getUserIdentifier();
-        $writer = new StorageWriter(StorageDisks::LOCAL_DISK, true,
-            ["ChallengesTests", "javascript", $challenge->id, $userIdentifier]);
-        $writer->write("user_func.js", $request->code);
-        //Clean test file or create if not exist
-        $writer->write("test.json", '', true);
-        $docker = new DockerContainer("node-" . $userIdentifier, DockerImagesNames::NODE_IMAGE);
-
-
-        $docker->detach()->exec("sh -c 'npm run test tests/$challenge->id/$userIdentifier/func.test.js -- --json"
-            . "> tests/$challenge->id/$userIdentifier/test.json'");
-
-        // npm run jest -- --json return a string with 4 extra unnecessary lines, just trim them
-        $writer->trimFile(4, 'test.json');
 
 
         try {
-            $result = $writer->get('test.json');
-        } catch (FileNotFoundException $e) {
-            $result = '{"passed": false, "message": "Server error"}';
+            $runner = CodeRunnerFactory::create($engine);
+        } catch (Exception $e) {
+            return json_encode(['error' => $e->getMessage()]);
         }
-
-        // Next line create a drastic performance issue. Find a way to stop container after test avoiding affect performance
-        // $docker->stop();
-
-
-        $json = JsonTestParser::parse(json_decode($result), AvailableDockerLanguages::JS);
-        return ['test_result' => $json,
-            'template' => $request->code];
+        $result = $runner->run($userIdentifier, $challenge, $request->get('code'));
+        return json_encode(['test_result' => $result]);
     }
 
-    /**
-     * @return string
-     * Return user identifier to have always the same path for user tests
-     */
+
+    public function submit(Request $request): JsonResponse
+    {
+
+        $challenger = User::find($request->userId)->challenger;
+        $challenge = Challenge::find($request->challengeId);
+
+        //Todo: Implement observer pattern to replace this
+        $runner = CodeRunnerFactory::create($request->engine);
+        $runner->stop($this->getUserIdentifier());
+
+        if (($challenger && $challenge)) {
+            if ($challenger->challenges()->where('challenge_id', $challenge->id)->first()) {
+                $challenger->challenges()->updateExistingPivot($challenge, ['status' => ChallengeStatuses::COMPLETE]);
+            } else {
+                $challenger->challenges()->attach($challenge->id, ['status' => ChallengeStatuses::COMPLETE]);
+            }
+            return response()->json(['success' => true]);
+        }
+        return response()->json(['success' => false]);
+    }
+
     private function getUserIdentifier(): string
     {
         $user = Auth::user();
         return !is_null($user) ? $user->challenger->id . $user->nick_name : 'guest';
     }
+
 }

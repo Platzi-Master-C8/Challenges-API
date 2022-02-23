@@ -13,11 +13,14 @@ class CreateCountriesTable extends Migration
      */
     public function up()
     {
-        Schema::create('countries', function (Blueprint $table) {
-            $table->id();
-            $table->string('name', 50);
-            $table->string('iso_alpha_2', 2);
-        });
+        if (env('APP_ENV') == 'testing' || env('APP_ENV') == 'local') {
+
+            Schema::create('countries', function (Blueprint $table) {
+                $table->id();
+                $table->string('name', 50);
+                $table->string('iso_alpha_2', 2);
+            });
+        }
     }
 
     /**
@@ -27,6 +30,8 @@ class CreateCountriesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('countries');
+        if (env('APP_ENV') == 'testing' || env('APP_ENV') == 'local') {
+            Schema::dropIfExists('countries');
+        }
     }
 }
