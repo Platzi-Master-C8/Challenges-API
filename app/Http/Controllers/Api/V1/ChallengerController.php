@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use Illuminate\Http\Request;
 use App\Constants\ChallengeStatuses;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\ChallengeChallengerCollection;
@@ -50,4 +51,15 @@ class ChallengerController extends Controller //TODO: Validations
 
         return $challenger->challenges->where('pivot.status', ChallengeStatuses::COMPLETE);
     }
+
+
+    public function store(Request $request): array
+    {
+        $challenger = new Challenger();
+        $challenger->user_id = $request->user()->id;
+        $challenger->points = 0;
+        $challenger->rank_id = 1;
+        return $challenger->save() ? ['success' => true] : ['success' => false];
+    }
+
 }

@@ -13,10 +13,13 @@ class CreateGendersTable extends Migration
      */
     public function up()
     {
-        Schema::create('genders', function (Blueprint $table) {
-            $table->id();
-            $table->string('name', 50);
-        });
+        if (env('APP_ENV') == 'testing' || env('APP_ENV') == 'local') {
+
+            Schema::create('genders', function (Blueprint $table) {
+                $table->id();
+                $table->string('name', 50);
+            });
+        }
     }
 
     /**
@@ -26,6 +29,9 @@ class CreateGendersTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('genders');
+        if (env('APP_ENV') == 'testing' || env('APP_ENV') == 'local') {
+
+            Schema::dropIfExists('genders');
+        }
     }
 }

@@ -17,6 +17,7 @@ class ChallengeResource extends JsonResource
             'name' => $this->name,
             'description' => $this->description,
             'time_out' => $this->time_out,
+            'func_template' => $this->func_template,
             'challengers_has_completed' => $this->getChallengersHasCompleted($max),
         ];
     }

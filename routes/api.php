@@ -23,11 +23,21 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::prefix("v1")->group(function () {
     Route::apiResource('achievements', App\Http\Controllers\Api\V1\AchievementController::class);
     Route::apiResource('challengers', ChallengerController::class)->only('show');
+
+
     Route::get('challengers/{challenger}/challenges', [ChallengerController::class, 'challenges'])->name('challengers.challenges');
+    Route::post('challengers', [ChallengerController::class, 'store'])->name('challengers.store');
+
+
     Route::apiResource('challenges', ChallengeController::class)->only('index', 'show', 'store');
     Route::apiResource('ranks', App\Http\Controllers\Api\V1\RankController::class);
+
+
     Route::prefix("runner/")->group(function () {
-        Route::get('/on/{challenge}', [App\Http\Controllers\CodeRunnerController::class, 'getChallengeEditor']);
-        Route::post('/check/{challenge}', [App\Http\Controllers\CodeRunnerController::class, 'runNode']);
+        Route::get('/on/{engine}/{challenge}', [App\Http\Controllers\CodeRunnerController::class, 'getChallengeEditor']);
+        Route::post('/check/{engine}/{challenge}', [App\Http\Controllers\CodeRunnerController::class, 'run']);
+        Route::post('/submit', [App\Http\Controllers\CodeRunnerController::class, 'submit']);
     });
+
+
 });

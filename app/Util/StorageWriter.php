@@ -55,10 +55,13 @@ class StorageWriter implements IFileWriter
     public function write(string $fileName, string $content, bool $givePermissions = false): void
     {
         Storage::disk($this->disk)->put($this->path . $fileName, $content);
-        $this->resetPath();
         if ($givePermissions) {
             chmod(storage_path('app/' . $this->path . $fileName), 0777);
+
+//            dd($fileName, $this->exists($fileName));
         }
+        $this->resetPath();
+
     }
 
     public function exists(string $fileName): bool
