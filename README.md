@@ -19,7 +19,7 @@ This project provide a lot of tools that can help you while creating a code chal
 
 `docker-compose up -d`
 
-Docker is required no matter wheter you use docker compose for your database, it will be used within the project to run code.
+Docker is required no matter wheter you use docker compose for your database, it will be used within the project to run the code that client side sends.
 
 
 #### Finally set the following env variables: 
