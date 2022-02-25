@@ -15,14 +15,14 @@ use Illuminate\Support\Facades\Auth;
 class CodeRunnerController extends Controller
 {
     /**
-     * @param Challenge $challenge
+     * @param Request $request
      * @param string $engine
+     * @param Challenge $challenge
      * @return ChallengeResource|string
-     * @throws Exception
      */
-    public function getChallengeEditor(string $engine, Challenge $challenge)
+    public function getChallengeEditor(Request $request, string $engine, Challenge $challenge)
     {
-        $userIdentifier = $this->getUserIdentifier();
+        $userIdentifier = $this->getUserIdentifier($request->header('user'));
 
         try {
             $runner = CodeRunnerFactory::create($engine);
@@ -39,29 +39,22 @@ class CodeRunnerController extends Controller
      */
     public function run(Request $request, string $engine, Challenge $challenge): string
     {
-        $userIdentifier = $this->getUserIdentifier();
-
-
-        try {
-            $runner = CodeRunnerFactory::create($engine);
-        } catch (Exception $e) {
-            return json_encode(['error' => $e->getMessage()]);
+        $challenger = User::find($request->header('user'))->challenger;
+        if (!$challenger->challenges()->where('challenge_id', $challenge->id)->first()) {
+            $challenger->challenges()->attach($challenge->id, ['status' => ChallengeStatuses::IN_PROGRESS]);
         }
-        $result = $runner->run($userIdentifier, $challenge, $request->get('code'));
+        $user = $this->getUserIdentifier($request->header('user'));
+        $result = $this->runCode($engine, $request->get('code'), $user, $challenge);
         return json_encode(['test_result' => $result]);
     }
 
 
     public function submit(Request $request): JsonResponse
     {
-
-        $challenger = User::find($request->userId)->challenger;
+        $challenger = User::find($request->header('user'))->challenger;
         $challenge = Challenge::find($request->challengeId);
-
-        //Todo: Implement observer pattern to replace this
         $runner = CodeRunnerFactory::create($request->engine);
-        $runner->stop($this->getUserIdentifier());
-
+        $runner->stop($this->getUserIdentifier($request->header('user')));
         if (($challenger && $challenge)) {
             if ($challenger->challenges()->where('challenge_id', $challenge->id)->first()) {
                 $challenger->challenges()->updateExistingPivot($challenge, ['status' => ChallengeStatuses::COMPLETE]);
@@ -73,10 +66,20 @@ class CodeRunnerController extends Controller
         return response()->json(['success' => false]);
     }
 
-    private function getUserIdentifier(): string
+    private function getUserIdentifier($user): string
     {
-        $user = Auth::user();
+        $user = User::where('id', $user)->first();
         return !is_null($user) ? $user->challenger->id . $user->nick_name : 'guest';
+    }
+
+    private function runCode($engine, $code, $user, $challenge)
+    {
+        try {
+            $runner = CodeRunnerFactory::create($engine);
+        } catch (Exception $e) {
+            return json_encode(['error' => $e->getMessage()]);
+        }
+        return $runner->run($user, $challenge, $code);
     }
 
 }

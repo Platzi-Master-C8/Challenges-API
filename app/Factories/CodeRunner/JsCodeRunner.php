@@ -56,14 +56,10 @@ class JsCodeRunner implements CodeRunner
         $docker->bindMount(storage_path(LocalChallengesPaths::NODE_PATH), DockerChallengesPaths::NODE_PATH)
             ->detach()->play();
 
-
         $writer = new StorageWriter(StorageDisks::LOCAL_DISK, true,
             ["ChallengesTests", 'javascript', $challenge->id, $userId]);
 
-        //In case that test has been updated in database. Test file will be overwritten
         $writer->write("func.test.js", $challenge->test_template);
-        //Create user_func file if not exists.
-        // !QUESTION: How could I improve this?
         if (!$writer->exists('user_func.js')) {
             $writer->write('user_func.js', $challenge->func_template);
         }

@@ -56,7 +56,7 @@ class ChallengerController extends Controller //TODO: Validations
     public function store(Request $request): array
     {
         $challenger = new Challenger();
-        $challenger->user_id = $request->user()->id;
+        $challenger->user_id = $request->user_id;
         $challenger->points = 0;
         $challenger->rank_id = 1;
         return $challenger->save() ? ['success' => true] : ['success' => false];

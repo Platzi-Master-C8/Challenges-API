@@ -33,8 +33,8 @@ Route::prefix("v1")->group(function () {
     Route::apiResource('ranks', App\Http\Controllers\Api\V1\RankController::class);
 
 
-    Route::prefix("runner/")->group(function () {
-        Route::get('/on/{engine}/{challenge}', [App\Http\Controllers\CodeRunnerController::class, 'getChallengeEditor']);
+    Route::prefix("runner/")->middleware('login.access')->group(function () {
+        Route::post('/on/{engine}/{challenge}', [App\Http\Controllers\CodeRunnerController::class, 'getChallengeEditor']);
         Route::post('/check/{engine}/{challenge}', [App\Http\Controllers\CodeRunnerController::class, 'run']);
         Route::post('/submit', [App\Http\Controllers\CodeRunnerController::class, 'submit']);
     });
