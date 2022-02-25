@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\User;
 use Closure;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -16,18 +17,10 @@ class LoginAccess
      */
     public function handle(Request $request, Closure $next)
     {
-
         if ($request->header('user') == null) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
-
-        $response = Http::withHeaders([
-            'Authorization' => 'Bearer ' . $request->header('user'),
-        ])->get(env('AUTH0_API_LOGIN'));
-
-
-        $user = json_decode($response);
-
+        $user = User::where('sub', '=', $request->header('user'))->first();
         $request->headers->set('user', $user->id);
         return $next($request);
     }
