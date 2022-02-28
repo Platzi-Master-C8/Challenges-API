@@ -62,4 +62,10 @@ class ChallengerController extends Controller //TODO: Validations
         return $challenger->save() ? ['success' => true] : ['success' => false];
     }
 
+    public function getProfile(Request $request): ChallengerResource
+    {
+
+        $challenger = Challenger::where('user_id', $request->header('user'))->firstOrFail();
+        return new ChallengerResource($challenger);
+    }
 }

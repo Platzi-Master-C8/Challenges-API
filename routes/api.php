@@ -38,6 +38,8 @@ Route::prefix("v1")->group(function () {
         Route::post('/check/{engine}/{challenge}', [App\Http\Controllers\CodeRunnerController::class, 'run']);
         Route::post('/submit', [App\Http\Controllers\CodeRunnerController::class, 'submit']);
     });
+    Route::get('profile/', [App\Http\Controllers\Api\V1\ChallengerController::class, 'getProfile'])
+        ->middleware('login.access');
 
 
 });
