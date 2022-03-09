@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Constants\ChallengeStatuses;
 use App\Factories\CodeRunner\CodeRunnerFactory;
 use App\Http\Resources\V1\ChallengeResource;
+use App\Models\Achievement;
 use App\Models\Challenge;
 use App\Models\User;
 use Exception;
@@ -67,6 +68,13 @@ class CodeRunnerController extends Controller
 
             }
             $challenger->points += 100;
+            if (!$challenger->achievements()->where('achievement_id', 1)->first()) {
+                $achievement = Achievement::where('id', 1)->first();
+                $achievement2 = Achievement::where('id', 2)->first();
+                $challenger->achievements()->attach($achievement);
+                $challenger->achievements()->attach($achievement2);
+                $challenger->save();
+            }
             $challenger->save();
             return response()->json(['success' => true]);
         }
