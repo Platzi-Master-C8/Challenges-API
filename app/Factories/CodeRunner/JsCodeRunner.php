@@ -27,9 +27,12 @@ class JsCodeRunner implements CodeRunner
             ["ChallengesTests", "javascript", $challenge->id, $userId]);
         $writer->write("user_func.js", $code);
 
-        $writer->write("test.json", '', true);
-        $docker = new DockerContainer("node-" . $userId, DockerImagesNames::NODE_IMAGE);
+//        $writer->write("test.json", '', true);
+        if (!$writer->exists("test.json")) {
+            $writer->write("test.json", '', true);
+        }
 
+        $docker = new DockerContainer("node-" . $userId, DockerImagesNames::NODE_IMAGE);
 
         $docker->detach()->exec("sh -c 'npm run test tests/$challenge->id/$userId/func.test.js -- --json"
             . "> tests/$challenge->id/$userId/test.json'");
