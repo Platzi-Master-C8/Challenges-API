@@ -53,14 +53,21 @@ class CodeRunnerController extends Controller
     {
         $challenger = User::find($request->header('user'))->challenger;
         $challenge = Challenge::find($request->challengeId);
+
+
         $runner = CodeRunnerFactory::create($request->engine);
+
         $runner->stop($this->getUserIdentifier($request->header('user')));
+
         if (($challenger && $challenge)) {
             if ($challenger->challenges()->where('challenge_id', $challenge->id)->first()) {
                 $challenger->challenges()->updateExistingPivot($challenge, ['status' => ChallengeStatuses::COMPLETE]);
             } else {
                 $challenger->challenges()->attach($challenge->id, ['status' => ChallengeStatuses::COMPLETE]);
+
             }
+            $challenger->points += 100;
+            $challenger->save();
             return response()->json(['success' => true]);
         }
         return response()->json(['success' => false]);
